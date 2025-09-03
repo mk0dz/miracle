@@ -2,12 +2,21 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/lib/auth';
 
+// Type definitions
+interface ResumeData {
+  id: string;
+  userId: string | null | undefined;
+  fileName: string;
+  content: string;
+  uploadedAt: string;
+}
+
 // In a real application, you'd store this in a database
 // For now, we'll use the global in-memory store
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -16,7 +25,8 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const resumeId = params.id;
+    const resolvedParams = await params;
+    const resumeId = resolvedParams.id;
     const resumeStore = global.resumeStore || new Map();
     const resume = resumeStore.get(resumeId);
 
@@ -50,6 +60,7 @@ export async function GET(
 }
 
 // Helper function to store resume (called from upload endpoint)
-export function storeResume(id: string, data: any) {
+export function storeResume(id: string, data: ResumeData) {
+  const resumeStore = global.resumeStore || new Map();
   resumeStore.set(id, data);
 }

@@ -64,6 +64,10 @@ Apply the requested changes to the resume and return the modified resume content
         }
       });
 
+      if (!response.text) {
+        throw new Error('No response text received from Gemini');
+      }
+
       let improvedContent = response.text.trim();
       
       // Clean up any formatting issues

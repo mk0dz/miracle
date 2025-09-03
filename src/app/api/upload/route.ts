@@ -2,9 +2,30 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/lib/auth';
 
+// Type definitions
+interface ResumeData {
+  id: string;
+  userId: string | null | undefined;
+  fileName: string;
+  content: string;
+  uploadedAt: string;
+}
+
+interface PDFParserData {
+  Pages?: Array<{
+    Texts?: Array<{
+      R?: Array<{
+        T?: string;
+      }>;
+    }>;
+  }>;
+  numpages?: number;
+  text?: string;
+}
+
 // Declare global type
 declare global {
-  var resumeStore: Map<string, any>;
+  var resumeStore: Map<string, ResumeData>;
 }
 
 export async function POST(request: NextRequest) {
@@ -44,7 +65,7 @@ export async function POST(request: NextRequest) {
       
       // Parse PDF and extract text
       const parsePromise = new Promise<string>((resolve, reject) => {
-        pdfParser.on("pdfParser_dataReady", (pdfData: any) => {
+        pdfParser.on("pdfParser_dataReady", (pdfData: PDFParserData) => {
           try {
             let text = '';
             if (pdfData.Pages) {
@@ -69,8 +90,8 @@ export async function POST(request: NextRequest) {
           }
         });
         
-        pdfParser.on("pdfParser_dataError", (error: any) => {
-          reject(error);
+        pdfParser.on("pdfParser_dataError", (errMsg: Record<"parserError", Error>) => {
+          reject(errMsg.parserError);
         });
         
         pdfParser.parseBuffer(buffer);
@@ -88,8 +109,8 @@ export async function POST(request: NextRequest) {
           details: 'The PDF appears to contain no extractable text. This usually happens with image-based PDFs or scanned documents.',
           suggestion: 'Please try with a PDF that contains selectable text, or use OCR software to convert image-based PDFs to text-based ones.',
           debug: {
-            pages: pdfData.numpages,
-            rawTextLength: pdfData.text ? pdfData.text.length : 0
+            fileSize: buffer.length,
+            extractedTextLength: extractedText.length
           }
         }, { status: 400 });
       }

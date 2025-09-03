@@ -56,6 +56,10 @@ Return only the JSON, no other text.`;
       const analysisText = response.text;
       console.log('Gemini response:', analysisText);
       
+      if (!analysisText) {
+        throw new Error('No response text received from Gemini');
+      }
+      
       // Clean the response to ensure it's valid JSON
       let cleanedResponse = analysisText.trim();
       if (cleanedResponse.startsWith('```json')) {

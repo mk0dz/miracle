@@ -275,10 +275,11 @@ export default function AISuggestionsPanel({
 }
 
 // Debounce utility function
-function debounce<T extends (...args: any[]) => any>(func: T, delay: number): T {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function debounce<T extends (...args: any[]) => any>(func: T, delay: number): (...args: Parameters<T>) => void {
   let timeoutId: NodeJS.Timeout;
-  return ((...args: any[]) => {
+  return (...args: Parameters<T>) => {
     clearTimeout(timeoutId);
-    timeoutId = setTimeout(() => func.apply(null, args), delay);
-  }) as T;
+    timeoutId = setTimeout(() => func(...args), delay);
+  };
 }

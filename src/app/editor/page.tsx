@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, Suspense } from "react";
 import { useSession } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 
-export default function SmartResumeEditor() {
+function EditorContent() {
   const { data: session } = useSession();
   const searchParams = useSearchParams();
   
@@ -346,5 +346,13 @@ export default function SmartResumeEditor() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function SmartResumeEditor() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center">Loading editor...</div>}>
+      <EditorContent />
+    </Suspense>
   );
 }
